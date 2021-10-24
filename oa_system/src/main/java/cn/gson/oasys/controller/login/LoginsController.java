@@ -11,6 +11,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -41,6 +43,9 @@ public class LoginsController {
 
 	private Random rnd = new Random();
 	
+	private static final Logger logger = LoggerFactory.getLogger(LoginsController.class);
+	
+	
 	/**
 	 * 登录界面的显示
 	 * @return
@@ -65,6 +70,7 @@ public class LoginsController {
 	 */
 	@RequestMapping(value="logins",method = RequestMethod.POST)
 	public String loginCheck(HttpSession session,HttpServletRequest req,Model model) throws UnknownHostException{
+		logger.info( "LoginsController.loginCheck 入参为" + "session = [" + session + "], req = [" + req + "], model = [" + model + "]");
 		String userName=req.getParameter("userName").trim();
 		String password=req.getParameter("password");
 		String ca=req.getParameter("code").toLowerCase();
@@ -76,6 +82,8 @@ public class LoginsController {
 			req.setAttribute("errormess","验证码输入错误!");
 			return "login/login";
 		}
+		//验证码用完删除
+		session.removeAttribute(CAPTCHA_KEY);
 		/*
 		 * 将用户名分开查找；用户名或者电话号码；
 		 * */
@@ -94,6 +102,8 @@ public class LoginsController {
 		}
 		Object sessionId=session.getAttribute("userId");
 		System.out.println(user);
+		logger.info("========================== \r\n " +
+				"sessionId = {};userId={}",sessionId,user.getUserId());
 		if(sessionId==user.getUserId()){
 			System.out.println("当前用户已经登录了；不能重复登录");
 			model.addAttribute("hasmess", "当前用户已经登录了；不能重复登录");
