@@ -50,8 +50,8 @@ public class LoginsController {
 		return "login/login";
 	}
 	
-	@RequestMapping("loginout")
-	public String loginout(HttpSession session){
+	@RequestMapping("logout")
+	public String logout(HttpSession session){
 		session.removeAttribute("userId");
 		return "redirect:/logins";
 	}
