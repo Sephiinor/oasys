@@ -6,10 +6,14 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import cn.gson.oasys.model.entity.user.WebConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -31,6 +35,8 @@ public class DeptController {
 	UserDao udao;
 	@Autowired
 	PositionDao pdao;
+
+	private static final Logger logger = LoggerFactory.getLogger(DeptController.class);
 	
 	/**
 	 * 第一次进入部门管理页面
@@ -46,29 +52,31 @@ public class DeptController {
 	
 	@RequestMapping(value = "deptedit" ,method = RequestMethod.POST)
 	public String adddept(@Valid Dept dept,@RequestParam("xg") String xg,BindingResult br,Model model){
-		System.out.println(br.hasErrors());
-		System.out.println(br.getFieldError());
+
+		logger.info( "DeptController.adddept 入参为" + "dept = [" + dept + "], xg = [" + xg + "], br = [" + br + "], model = [" + model + "]");
+		logger.info("校验BindingResult是否有误"+br.hasErrors()+"文件是否为空"+br.getFieldError());
+
 		if(!br.hasErrors()){
-			System.out.println("没有错误");
+			logger.info("BindingResult校验无误,开始后续逻辑");
 			Dept adddept = deptdao.save(dept);
 			if("add".equals(xg)){
-				System.out.println("新增拉");
+				logger.info("新增部门"+dept.toString());
 				Position jinli = new Position();
 				jinli.setDeptid(adddept.getDeptId());
-				jinli.setName("经理");
+				jinli.setName(WebConstants.MANAGER);
 				Position wenyuan = new Position();
 				wenyuan.setDeptid(adddept.getDeptId());
-				wenyuan.setName("文员");
+				wenyuan.setName(WebConstants.CLERK);
 				pdao.save(jinli);
 				pdao.save(wenyuan);
 			}
 			if(adddept!=null){
-				System.out.println("插入成功");
+				logger.info( "DeptController.adddept  部门新增成功");
 				model.addAttribute("success",1);
 				return "/deptmanage";
 			}
 		}
-		System.out.println("有错误");
+		logger.error("部门添加失败");
 		model.addAttribute("errormess","错误！~");
 		return "user/deptedit";
 	}
@@ -116,7 +124,7 @@ public class DeptController {
 		
 	}
 	
-	@RequestMapping("deptandpositionchange")
+	@PostMapping("deptandpositionchange")
 	public String deptandpositionchange(@RequestParam("positionid") Long positionid,
 			@RequestParam("changedeptid") Long changedeptid,
 			@RequestParam("userid") Long userid,
@@ -154,8 +162,7 @@ public class DeptController {
 			@RequestParam(value="newmanageid",required=false) Long newmanageid,
 			@RequestParam("deptid") Long deptid,
 			Model model){
-		System.out.println("oldmanageid:"+oldmanageid);
-		System.out.println("newmanageid:"+newmanageid);
+		logger.info( "【DeptController.deptmanagerchange】 入参为" + "positionid = [" + positionid + "], changedeptid = [" + changedeptid + "], oldmanageid = [" + oldmanageid + "], newmanageid = [" + newmanageid + "], deptid = [" + deptid + "], model = [" + model + "]");
 		Dept deptnow = deptdao.findOne(deptid);
 		if(oldmanageid!=null){
 			User oldmanage = udao.findOne(oldmanageid);
